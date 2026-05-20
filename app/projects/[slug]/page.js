@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import {
     ArrowLeft,
     Calendar,
@@ -17,15 +17,14 @@ import {
     Share2,
     Eye,
     Code,
-    Users,
     Star
 } from 'lucide-react'
 import { BsGithub } from 'react-icons/bs'
 
 export default function ProjectDetailPage() {
     const params = useParams()
-    const router = useRouter()
     const [project, setProject] = useState(null)
+    const [relatedProjects, setRelatedProjects] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
 
@@ -40,6 +39,8 @@ export default function ProjectDetailPage() {
 
             if (data.success) {
                 setProject(data.project)
+                // Fetch related projects after getting the current project
+                await fetchRelatedProjects(data.project)
             } else {
                 setError(data.error)
             }
@@ -48,6 +49,36 @@ export default function ProjectDetailPage() {
             setError('Failed to load project')
         } finally {
             setLoading(false)
+        }
+    }
+
+    const fetchRelatedProjects = async (currentProject) => {
+        try {
+            // Fetch all projects
+            const response = await fetch('/api/projects?status=all&limit=50')
+            const data = await response.json()
+
+            if (data.success) {
+                // Filter related projects based on category or shared tags
+                const related = data.projects.filter(project => {
+                    // Don't include the current project
+                    if (project.id === currentProject.id) return false
+
+                    // Match by category
+                    if (project.category === currentProject.category) return true
+
+                    // Match by shared tags (at least one common tag)
+                    const currentTags = currentProject.tags || []
+                    const projectTags = project.tags || []
+                    const hasCommonTag = currentTags.some(tag => projectTags.includes(tag))
+
+                    return hasCommonTag
+                }).slice(0, 3) // Limit to 3 related projects
+
+                setRelatedProjects(related)
+            }
+        } catch (error) {
+            console.error('Error fetching related projects:', error)
         }
     }
 
@@ -124,20 +155,18 @@ export default function ProjectDetailPage() {
         <div className="min-h-screen bg-[#0A0A0A]">
             {/* Hero Section */}
             <div className="relative overflow-hidden">
-                {/* Background Image */}
                 {project.image_url && (
                     <div className="absolute inset-0 z-0">
                         <img
                             src={project.image_url}
                             alt={project.title}
-                            className="w-full h-full object-cover opacity-20"
+                            className="w-full h-full object-cover opacity-60"
                         />
                         <div className="absolute inset-0 bg-gradient-to-b from-[#0A0A0A] via-[#0A0A0A]/80 to-[#0A0A0A]" />
                     </div>
                 )}
 
                 <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
-                    {/* Back Button */}
                     <Link
                         href="/projects"
                         className="inline-flex items-center gap-2 text-[#888888] hover:text-white mb-8 transition-colors group"
@@ -146,9 +175,7 @@ export default function ProjectDetailPage() {
                         Back to Projects
                     </Link>
 
-                    {/* Project Header */}
                     <div className="max-w-4xl">
-                        {/* Status Badge */}
                         <div className="flex items-center gap-3 mb-6">
                             <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border ${getStatusColor(project.status)}`}>
                                 {getStatusIcon(project.status)}
@@ -162,17 +189,14 @@ export default function ProjectDetailPage() {
                             )}
                         </div>
 
-                        {/* Title */}
                         <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6">
                             {project.title}
                         </h1>
 
-                        {/* Description */}
                         <p className="text-lg sm:text-xl text-[#888888] leading-relaxed mb-8 max-w-3xl">
                             {project.description}
                         </p>
 
-                        {/* Action Buttons */}
                         <div className="flex flex-wrap gap-4">
                             {project.project_url && (
                                 <a
@@ -206,7 +230,6 @@ export default function ProjectDetailPage() {
                 <div className="grid lg:grid-cols-3 gap-8 lg:gap-12">
                     {/* Main Content */}
                     <div className="lg:col-span-2 space-y-8">
-                        {/* Full Description */}
                         {project.full_description && (
                             <div className="bg-[#111111] rounded-xl border border-[#222222] p-6 lg:p-8">
                                 <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
@@ -219,7 +242,6 @@ export default function ProjectDetailPage() {
                             </div>
                         )}
 
-                        {/* Additional Content Placeholder */}
                         <div className="bg-[#111111] rounded-xl border border-[#222222] p-6 lg:p-8">
                             <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
                                 <Code className="w-5 h-5 text-[#5B8C5A]" />
@@ -250,12 +272,10 @@ export default function ProjectDetailPage() {
 
                     {/* Sidebar */}
                     <div className="space-y-6">
-                        {/* Project Info Card */}
                         <div className="bg-[#111111] rounded-xl border border-[#222222] p-6 sticky top-24">
                             <h3 className="text-lg font-semibold text-white mb-4">Project Info</h3>
 
                             <div className="space-y-4">
-                                {/* Category */}
                                 {project.category && (
                                     <div>
                                         <p className="text-xs text-[#888888] uppercase tracking-wider mb-2">Category</p>
@@ -266,7 +286,6 @@ export default function ProjectDetailPage() {
                                     </div>
                                 )}
 
-                                {/* Launch Date */}
                                 {project.launch_date && (
                                     <div>
                                         <p className="text-xs text-[#888888] uppercase tracking-wider mb-2">Launch Date</p>
@@ -283,7 +302,6 @@ export default function ProjectDetailPage() {
                                     </div>
                                 )}
 
-                                {/* Technologies */}
                                 {project.tags && project.tags.length > 0 && (
                                     <div>
                                         <p className="text-xs text-[#888888] uppercase tracking-wider mb-2">Technologies</p>
@@ -301,10 +319,8 @@ export default function ProjectDetailPage() {
                                 )}
                             </div>
 
-                            {/* Divider */}
                             <div className="border-t border-[#222222] my-6" />
 
-                            {/* Stats */}
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="text-center">
                                     <Eye className="w-5 h-5 text-[#5B8C5A] mx-auto mb-2" />
@@ -318,14 +334,18 @@ export default function ProjectDetailPage() {
                                 </div>
                             </div>
 
-                            {/* Share Button */}
                             <button
                                 onClick={() => {
-                                    navigator.share?.({
-                                        title: project.title,
-                                        text: project.description,
-                                        url: window.location.href
-                                    })
+                                    if (typeof navigator.share === 'function') {
+                                        navigator.share({
+                                            title: project.title,
+                                            text: project.description,
+                                            url: window.location.href
+                                        })
+                                    } else {
+                                        navigator.clipboard.writeText(window.location.href)
+                                        alert('Link copied to clipboard!')
+                                    }
                                 }}
                                 className="w-full mt-4 inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#1A1A1A] hover:bg-[#222222] text-white rounded-lg transition-colors"
                             >
@@ -337,18 +357,53 @@ export default function ProjectDetailPage() {
                 </div>
 
                 {/* Related Projects Section */}
-                <div className="mt-16 pt-8 border-t border-[#222222]">
-                    <h2 className="text-2xl font-bold text-white mb-8 flex items-center gap-2">
-                        <Sparkles className="w-5 h-5 text-[#5B8C5A]" />
-                        You Might Also Like
-                    </h2>
-                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {/* You can add related projects here */}
-                        <div className="bg-[#111111] rounded-xl border border-[#222222] p-6 text-center">
-                            <p className="text-[#888888]">More projects coming soon...</p>
+                {relatedProjects.length > 0 && (
+                    <div className="mt-16 pt-8 border-t border-[#222222]">
+                        <h2 className="text-2xl font-bold text-white mb-8 flex items-center gap-2">
+                            <Sparkles className="w-5 h-5 text-[#5B8C5A]" />
+                            You Might Also Like
+                        </h2>
+                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {relatedProjects.map((relatedProject) => (
+                                <Link
+                                    key={relatedProject.id}
+                                    href={`/projects/${relatedProject.slug}`}
+                                    className="group bg-[#111111] rounded-xl border border-[#222222] overflow-hidden hover:border-[#333333] transition-all duration-300 hover:-translate-y-1"
+                                >
+                                    <div className="relative h-48 overflow-hidden">
+                                        <img
+                                            src={relatedProject.image_url || '/placeholder-image.jpg'}
+                                            alt={relatedProject.title}
+                                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                        />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-[#111111] via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+
+                                        {/* Category Badge */}
+                                        {relatedProject.category && (
+                                            <div className="absolute top-3 left-3">
+                                                <div className="flex items-center gap-1.5 px-2 py-1 bg-[#5B8C5A]/90 backdrop-blur-sm rounded-full">
+                                                    <Sparkles className="w-3 h-3 text-white" />
+                                                    <span className="text-xs font-medium text-white">
+                                                        {relatedProject.category}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="p-5">
+                                        <h3 className="text-lg font-bold text-white group-hover:text-[#5B8C5A] transition-colors mb-2 line-clamp-1">
+                                            {relatedProject.title}
+                                        </h3>
+                                        <p className="text-sm text-[#888888] line-clamp-2">
+                                            {relatedProject.description}
+                                        </p>
+                                    </div>
+                                </Link>
+                            ))}
                         </div>
                     </div>
-                </div>
+                )}
             </div>
         </div>
     )

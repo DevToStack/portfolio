@@ -25,6 +25,7 @@ export default function ProjectsPage() {
     const [statusFilter, setStatusFilter] = useState('all')
 
     useEffect(() => {
+        setLoading(true)
         fetchProjects()
     }, [statusFilter])
 
@@ -56,7 +57,6 @@ export default function ProjectsPage() {
     }
 
     const getRandomHeight = () => {
-        // Random heights between 280px and 400px for variety
         const heights = ['h-72', 'h-80', 'h-88', 'h-96']
         return heights[Math.floor(Math.random() * heights.length)]
     }
@@ -67,16 +67,50 @@ export default function ProjectsPage() {
         (project.category && project.category.toLowerCase().includes(search.toLowerCase()))
     )
 
-    if (loading) {
-        return (
-            <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center">
-                <div className="text-center">
-                    <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#5B8C5A] mb-4"></div>
-                    <p className="text-[#888888] text-lg">Loading projects...</p>
+    // Skeleton Card Component
+    const SkeletonCard = () => (
+        <div className="break-inside-avoid animate-pulse">
+            <div className="bg-[#111111] rounded-xl border border-[#222222] overflow-hidden">
+                {/* Image Skeleton */}
+                <div className={`relative w-full ${getRandomHeight()} bg-[#1A1A1A]`}>
+                    <div className="absolute inset-0 bg-gradient-to-br from-[#1A1A1A] to-[#0A0A0A]" />
+                </div>
+
+                {/* Content Skeleton */}
+                <div className="p-5 sm:p-6 space-y-4">
+                    {/* Title and Date */}
+                    <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                            <div className="h-6 bg-[#1A1A1A] rounded-lg w-3/4"></div>
+                        </div>
+                        <div className="h-4 bg-[#1A1A1A] rounded w-16 ml-2"></div>
+                    </div>
+
+                    {/* Description */}
+                    <div className="space-y-2">
+                        <div className="h-4 bg-[#1A1A1A] rounded w-full"></div>
+                        <div className="h-4 bg-[#1A1A1A] rounded w-5/6"></div>
+                        <div className="h-4 bg-[#1A1A1A] rounded w-4/6"></div>
+                    </div>
+
+                    {/* Tags */}
+                    <div className="flex flex-wrap gap-2">
+                        <div className="h-6 bg-[#1A1A1A] rounded w-16"></div>
+                        <div className="h-6 bg-[#1A1A1A] rounded w-20"></div>
+                        <div className="h-6 bg-[#1A1A1A] rounded w-14"></div>
+                    </div>
+
+                    {/* Footer */}
+                    <div className="flex items-center justify-between pt-4 border-t border-[#222222]">
+                        <div className="flex items-center gap-3">
+                            <div className="h-4 bg-[#1A1A1A] rounded w-20"></div>
+                        </div>
+                        <div className="h-4 bg-[#1A1A1A] rounded w-8"></div>
+                    </div>
                 </div>
             </div>
-        )
-    }
+        </div>
+    )
 
     return (
         <div className="min-h-screen bg-[#0A0A0A]">
@@ -117,8 +151,8 @@ export default function ProjectsPage() {
                                 key={status}
                                 onClick={() => setStatusFilter(status)}
                                 className={`px-4 py-2 rounded-lg capitalize text-sm transition-colors whitespace-nowrap ${statusFilter === status
-                                    ? 'bg-[#5B8C5A] text-white'
-                                    : 'bg-[#111111] text-[#888888] hover:text-white border border-[#222222]'
+                                        ? 'bg-[#5B8C5A] text-white'
+                                        : 'bg-[#111111] text-[#888888] hover:text-white border border-[#222222]'
                                     }`}
                             >
                                 {status === 'all' ? 'All Projects' : status}
@@ -129,132 +163,142 @@ export default function ProjectsPage() {
 
                 {/* Pinterest-style Masonry Grid using CSS columns */}
                 <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 2xl:columns-5 gap-6 space-y-6">
-                    {filteredProjects.map((item, index) => (
-                        <div
-                            key={item.id || index}
-                            className="group cursor-pointer break-inside-avoid hover:-translate-y-1 transition-transform duration-300"
-                        >
-                            <div className="bg-[#111111] rounded-xl border border-[#222222] overflow-hidden hover:border-[#333333] transition-colors duration-200">
-                                {/* Image Container - Different heights based on content */}
-                                <div className="relative overflow-hidden bg-[#111111]">
-                                    {/* Random height for Pinterest effect - you can also use image aspect ratio */}
-                                    <div className={`relative w-full ${getRandomHeight()}`}>
-                                        <img
-                                            src={item.image_url || item.image}
-                                            alt={item.title}
-                                            className="w-full h-full object-cover transition-transform duration-500 will-change-transform"
-                                        />
+                    {/* Show skeletons while loading */}
+                    {loading ? (
+                        // Show 10 skeleton cards while loading
+                        Array.from({ length: 10 }).map((_, index) => (
+                            <SkeletonCard key={`skeleton-${index}`} />
+                        ))
+                    ) : (
+                        // Show actual projects
+                        filteredProjects.map((item, index) => (
+                            <div
+                                key={item.id || index}
+                                className="group cursor-pointer break-inside-avoid hover:-translate-y-1 transition-transform duration-300"
+                            >
+                                <div className="bg-[#111111] rounded-xl border border-[#222222] overflow-hidden hover:border-[#333333] transition-colors duration-200">
+                                    {/* Image Container */}
+                                    <div className="relative overflow-hidden bg-[#111111]">
+                                        <div className={`relative w-full ${getRandomHeight()}`}>
+                                            <img
+                                                src={item.image_url || item.image}
+                                                alt={item.title}
+                                                className="w-full h-full object-cover transition-transform duration-500 will-change-transform"
+                                                loading="lazy"
+                                            />
 
-                                        {/* Gradient Overlay */}
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+                                            {/* Gradient Overlay */}
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
-                                        {/* View Project Button */}
-                                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none z-30">
-                                            <Link
-                                                href={`/projects/${item.slug || item.id}`}
-                                                className="pointer-events-auto inline-flex items-center gap-2 px-5 py-2.5 bg-[#5B8C5A] hover:bg-[#4A7349] text-white text-sm font-medium rounded-lg shadow-lg shadow-[#5B8C5A]/25 transition-colors duration-200 transform translate-y-4 group-hover:translate-y-0 transition-transform"
-                                            >
-                                                <Eye className="w-4 h-4" />
-                                                View Project
-                                                <ExternalLink className="w-3.5 h-3.5" />
-                                            </Link>
-                                        </div>
-
-                                        {/* Category Badge */}
-                                        <div className="absolute top-4 left-4 z-20">
-                                            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[#5B8C5A]/90 backdrop-blur-sm rounded-full border border-[#5B8C5A]/20">
-                                                <Sparkles className="w-3 h-3 text-white" />
-                                                <span className="text-xs font-medium text-white">
-                                                    {item.category || "Experiment"}
-                                                </span>
+                                            {/* View Project Button */}
+                                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none z-30">
+                                                <Link
+                                                    href={`/projects/${item.slug || item.id}`}
+                                                    className="pointer-events-auto inline-flex items-center gap-2 px-5 py-2.5 bg-[#5B8C5A] hover:bg-[#4A7349] text-white text-sm font-medium rounded-lg shadow-lg shadow-[#5B8C5A]/25 transition-colors duration-200 transform translate-y-4 group-hover:translate-y-0 transition-transform"
+                                                >
+                                                    <Eye className="w-4 h-4" />
+                                                    View Project
+                                                    <ExternalLink className="w-3.5 h-3.5" />
+                                                </Link>
                                             </div>
-                                        </div>
 
-                                        {/* Status Badge */}
-                                        {item.status && item.status !== 'completed' && (
-                                            <div className="absolute top-4 right-4 z-20">
-                                                <div className="px-2 py-1 bg-black/70 backdrop-blur-sm rounded-full text-xs font-medium text-white capitalize">
-                                                    {item.status.replace('-', ' ')}
+                                            {/* Category Badge */}
+                                            <div className="absolute top-4 left-4 z-20">
+                                                <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[#5B8C5A]/90 backdrop-blur-sm rounded-full border border-[#5B8C5A]/20">
+                                                    <Sparkles className="w-3 h-3 text-white" />
+                                                    <span className="text-xs font-medium text-white">
+                                                        {item.category || "Experiment"}
+                                                    </span>
                                                 </div>
+                                            </div>
+
+                                            {/* Status Badge */}
+                                            {item.status && item.status !== 'completed' && (
+                                                <div className="absolute top-4 right-4 z-20">
+                                                    <div className="px-2 py-1 bg-black/70 backdrop-blur-sm rounded-full text-xs font-medium text-white capitalize">
+                                                        {item.status.replace('-', ' ')}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Content */}
+                                    <div className="p-5 sm:p-6">
+                                        <div className="flex items-start justify-between mb-2">
+                                            <h3 className="text-lg sm:text-xl font-bold text-white group-hover:text-[#5B8C5A] transition-colors duration-200 line-clamp-2">
+                                                {item.title}
+                                            </h3>
+                                            <span className="text-xs text-[#888888] flex-shrink-0 ml-2">
+                                                {item.launch_date
+                                                    ? (() => {
+                                                        const date = new Date(item.launch_date)
+                                                        const isValidDate = !isNaN(date.getTime())
+                                                        if (!isValidDate) return 'Invalid date'
+                                                        const hasMonthDay = item.launch_date.includes('-') &&
+                                                            item.launch_date.split('-').length >= 2
+                                                        if (hasMonthDay) {
+                                                            return date.toLocaleDateString('en-US', {
+                                                                year: 'numeric',
+                                                                month: 'short',
+                                                                day: 'numeric'
+                                                            })
+                                                        } else {
+                                                            return date.getFullYear()
+                                                        }
+                                                    })()
+                                                    : 'Coming Soon'}
+                                            </span>
+                                        </div>
+                                        <p className="text-sm text-[#888888] leading-relaxed mb-4 line-clamp-3">
+                                            {item.description}
+                                        </p>
+
+                                        {/* Tags */}
+                                        {item.tags && item.tags.length > 0 && (
+                                            <div className="flex flex-wrap gap-2 mb-4">
+                                                {item.tags.slice(0, 3).map((tag, idx) => (
+                                                    <span key={idx} className="px-2 py-0.5 bg-[#1A1A1A] text-[#888888] text-xs rounded-md">
+                                                        {tag}
+                                                    </span>
+                                                ))}
+                                                {item.tags.length > 3 && (
+                                                    <span className="px-2 py-0.5 bg-[#1A1A1A] text-[#888888] text-xs rounded-md">
+                                                        +{item.tags.length - 3}
+                                                    </span>
+                                                )}
                                             </div>
                                         )}
-                                    </div>
-                                </div>
 
-                                {/* Content */}
-                                <div className="p-5 sm:p-6">
-                                    <div className="flex items-start justify-between mb-2">
-                                        <h3 className="text-lg sm:text-xl font-bold text-white group-hover:text-[#5B8C5A] transition-colors duration-200 line-clamp-2">
-                                            {item.title}
-                                        </h3>
-                                        <span className="text-xs text-[#888888] flex-shrink-0 ml-2">
-                                            {item.launch_date
-                                                ? (() => {
-                                                    const date = new Date(item.launch_date)
-                                                    const isValidDate = !isNaN(date.getTime())
-                                                    if (!isValidDate) return 'Invalid date'
-                                                    const hasMonthDay = item.launch_date.includes('-') &&
-                                                        item.launch_date.split('-').length >= 2
-                                                    if (hasMonthDay) {
-                                                        return date.toLocaleDateString('en-US', {
-                                                            year: 'numeric',
-                                                            month: 'short',
-                                                            day: 'numeric'
-                                                        })
-                                                    } else {
-                                                        return date.getFullYear()
-                                                    }
-                                                })()
-                                                : 'Coming Soon'}
-                                        </span>
-                                    </div>
-                                    <p className="text-sm text-[#888888] leading-relaxed mb-4 line-clamp-3">
-                                        {item.description}
-                                    </p>
-
-                                    {/* Tags */}
-                                    {item.tags && item.tags.length > 0 && (
-                                        <div className="flex flex-wrap gap-2 mb-4">
-                                            {item.tags.slice(0, 3).map((tag, idx) => (
-                                                <span key={idx} className="px-2 py-0.5 bg-[#1A1A1A] text-[#888888] text-xs rounded-md">
-                                                    {tag}
-                                                </span>
-                                            ))}
-                                            {item.tags.length > 3 && (
-                                                <span className="px-2 py-0.5 bg-[#1A1A1A] text-[#888888] text-xs rounded-md">
-                                                    +{item.tags.length - 3}
-                                                </span>
-                                            )}
-                                        </div>
-                                    )}
-
-                                    {/* Footer Stats */}
-                                    <div className="flex items-center justify-between pt-4 border-t border-[#222222] group-hover:border-[#333333] transition-colors duration-200">
-                                        <div className="flex items-center gap-3">
-                                            {item.status === 'completed' && (
+                                        {/* Footer Stats */}
+                                        <div className="flex items-center justify-between pt-4 border-t border-[#222222] group-hover:border-[#333333] transition-colors duration-200">
+                                            <div className="flex items-center gap-3">
+                                                {item.status === 'completed' && (
+                                                    <div className="flex items-center gap-1">
+                                                        <Heart className="w-3.5 h-3.5 text-[#888888] group-hover:text-red-500 transition-colors duration-200" />
+                                                        <span className="text-xs text-[#888888]">Featured</span>
+                                                    </div>
+                                                )}
                                                 <div className="flex items-center gap-1">
-                                                    <Heart className="w-3.5 h-3.5 text-[#888888] group-hover:text-red-500 transition-colors duration-200" />
-                                                    <span className="text-xs text-[#888888]">Featured</span>
+                                                    <Clock className="w-3.5 h-3.5 text-[#888888]" />
+                                                    <span className="text-xs text-[#888888] capitalize">
+                                                        {item.status === 'completed' ? 'Completed' :
+                                                            item.status === 'in-progress' ? 'In Progress' :
+                                                                item.status === 'coming-soon' ? 'Coming Soon' : 'Planned'}
+                                                    </span>
                                                 </div>
-                                            )}
-                                            <div className="flex items-center gap-1">
-                                                <Clock className="w-3.5 h-3.5 text-[#888888]" />
-                                                <span className="text-xs text-[#888888] capitalize">
-                                                    {item.status === 'completed' ? 'Completed' :
-                                                        item.status === 'in-progress' ? 'In Progress' :
-                                                            item.status === 'coming-soon' ? 'Coming Soon' : 'Planned'}
-                                                </span>
                                             </div>
+                                            <ArrowRight className="w-4 h-4 text-[#5B8C5A] opacity-0 group-hover:opacity-100 transform -translate-x-2 group-hover:translate-x-0 transition-all duration-200" />
                                         </div>
-                                        <ArrowRight className="w-4 h-4 text-[#5B8C5A] opacity-0 group-hover:opacity-100 transform -translate-x-2 group-hover:translate-x-0 transition-all duration-200" />
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    ))}
+                        ))
+                    )}
                 </div>
 
-                {filteredProjects.length === 0 && (
+                {/* No Results */}
+                {!loading && filteredProjects.length === 0 && (
                     <div className="bg-[#111111] border border-[#222222] rounded-xl p-12 text-center">
                         <p className="text-[#888888]">No projects found matching your criteria</p>
                     </div>
