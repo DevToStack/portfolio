@@ -1,7 +1,7 @@
 // app/admin/projects/page.js
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import {
     Plus,
@@ -186,10 +186,19 @@ export default function AdminProjectsPage() {
         return status.replace('-', ' ').toUpperCase()
     }
 
-    const getRandomHeight = () => {
+    // Generate consistent random heights for each project based on its ID
+    const getConsistentHeight = (projectId) => {
         const heights = ['h-48', 'h-56', 'h-64', 'h-72']
-        return heights[Math.floor(Math.random() * heights.length)]
+        // Use project ID to deterministically choose a height
+        const index = projectId ? Math.abs(projectId) % heights.length : 0
+        return heights[index]
     }
+
+    // For skeleton loading, generate consistent heights
+    const skeletonHeights = useMemo(() => {
+        const heights = ['h-48', 'h-56', 'h-64', 'h-72']
+        return Array.from({ length: 8 }, (_, i) => heights[i % heights.length])
+    }, [])
 
     const getStatusBadge = (status) => {
         const badges = {
@@ -207,17 +216,17 @@ export default function AdminProjectsPage() {
     )
 
     // Skeleton Card Component
-    const SkeletonCard = () => {
-        const randomHeight = getRandomHeight()
+    const SkeletonCard = ({ heightIndex }) => {
         return (
             <div className="break-inside-avoid animate-pulse">
                 <div className="bg-[#111111] rounded-xl border border-[#222222] overflow-hidden">
                     {/* Image Skeleton */}
-                    <div className={`relative w-full ${randomHeight} bg-gradient-to-br from-[#1A1A1A] to-[#0A0A0A]`}>
+                    <div className={`relative w-full ${skeletonHeights[heightIndex]} bg-gradient-to-br from-[#1A1A1A] to-[#0A0A0A]`}>
                         <div className="absolute inset-0 flex items-center justify-center">
                             <FileText className="w-12 h-12 text-[#222222]" />
                         </div>
                     </div>
+
 
                     {/* Content Skeleton */}
                     <div className="p-4 space-y-3">
@@ -333,7 +342,7 @@ export default function AdminProjectsPage() {
                             >
                                 {/* Image Section */}
                                 <div className="relative overflow-hidden">
-                                    <div className={`relative w-full ${getRandomHeight()}`}>
+                                    <div className={`relative w-full ${getConsistentHeight(project.id)}`}>
                                         {project.image_url ? (
                                             <img
                                                 src={project.image_url}
