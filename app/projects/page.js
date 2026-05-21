@@ -72,7 +72,7 @@ export default function ProjectsPage() {
         <div className="break-inside-avoid animate-pulse">
             <div className="bg-[#111111] rounded-xl border border-[#222222] overflow-hidden">
                 {/* Image Skeleton */}
-                <div className={`relative w-full ${getRandomHeight()} bg-[#1A1A1A]`}>
+                <div className={`relative w-full ${getRandomHeight()} bg-[#1A1A1A]`} suppressHydrationWarning>
                     <div className="absolute inset-0 bg-gradient-to-br from-[#1A1A1A] to-[#0A0A0A]" />
                 </div>
 

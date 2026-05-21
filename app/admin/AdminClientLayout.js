@@ -10,6 +10,7 @@ import {
     LogOut,
     Menu,
     X,
+    ChartNetwork,
     Projector
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
@@ -19,6 +20,7 @@ const navItems = [
     { name: 'Schedule', href: '/admin/schedule', icon: Calendar },
     { name: 'Contacts', href: '/admin/contacts', icon: Users },
     { name: 'Projects', href: '/admin/projects', icon: Projector },
+    { name: 'Case Studies', href: '/admin/case-study', icon: ChartNetwork },
 ];
 
 export default function AdminClientLayout({ children }) {
