@@ -85,9 +85,6 @@ export default function SchedulePage() {
 
             if (data.success) {
                 setSuccess(true)
-                setTimeout(() => {
-                    router.push('/schedule/confirmation')
-                }, 2000)
             } else {
                 alert(data.error || 'Failed to book appointment')
             }

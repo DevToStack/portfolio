@@ -14,7 +14,7 @@ const playfair = Playfair_Display({
 })
 
 export const metadata = {
-  title: 'Alex Chen | Product Designer & Creative Technologist',
+  title: 'Mohammed Rabi | FullStack Developer',
   description: 'I help ambitious startups design products that users love. Transforming complex problems into intuitive experiences.',
   keywords: 'product designer, UX designer, portfolio, creative technologist',
 }
